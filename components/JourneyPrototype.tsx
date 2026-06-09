@@ -139,13 +139,13 @@ function getSegmentTransform(
   const minY = Math.min(...segmentPoints.map((p) => p.y));
   const maxY = Math.max(...segmentPoints.map((p) => p.y));
 
-  const padding = 30;
+  const padding = 60;
   
   const maxZoom = 12;
   const minZoom = 1.4;
 
-  const targetWidth = WIDTH * 0.9;
-  const targetHeight = HEIGHT * 0.9;
+  const targetWidth = WIDTH * 0.7;
+  const targetHeight = HEIGHT * 0.7;
 
   const segmentWidth = maxX - minX;
   const segmentHeight = maxY - minY;
@@ -173,15 +173,30 @@ function getSegmentTransform(
 
 export default function JourneyPrototype() {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const playTweenRef = useRef<gsap.core.Tween | null>(null);
+
   const [progress, setProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const playTweenRef = useRef<gsap.core.Tween | null>(null);
+  
+  const [view, setView] = useState({
+    x: 0,
+    y: 0,
+    zoom: 1,
+  });
+
+  const viewRef = useRef({
+    x: 0,
+    y: 0,
+    zoom: 1,
+  });
+
+  const isMapTransitioningRef = useRef(false);
 
   const points = useMemo(
     () => addPathDistance(projectPoints(stops as Stop[])),
     []
   );
-
+ 
   const current = interpolateByPathDistance(points, progress);
 
   const visiblePoints = [
@@ -223,7 +238,35 @@ export default function JourneyPrototype() {
     activeArticle.endStopId
   );
 
-  const mapTransform = `translate(${segmentView.x}, ${segmentView.y}) scale(${segmentView.zoom})`;
+  useEffect(() => {
+    isMapTransitioningRef.current = true;
+
+    gsap.to(viewRef.current, {
+      x: segmentView.x,
+      y: segmentView.y,
+      zoom: segmentView.zoom,
+      duration: 1.2,
+      ease: "power2.inOut",
+
+      onUpdate: () => {
+        setView({
+          x: viewRef.current.x,
+          y: viewRef.current.y,
+          zoom: viewRef.current.zoom,
+        });
+      },
+
+      onComplete: () => {
+        isMapTransitioningRef.current = false;
+      },
+    });
+  }, [
+    segmentView.x,
+    segmentView.y,
+    segmentView.zoom,
+  ]);
+
+  const mapTransform = `translate(${view.x}, ${view.y}) scale(${view.zoom})`;
 
   useEffect(() => {
 	  if (!containerRef.current) return;
