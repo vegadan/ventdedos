@@ -1,0 +1,128 @@
+[
+  {
+    "id": 1,
+    "title": "En route",
+    "startStopId": 1,
+    "endStopId": 1
+  },
+  {
+    "id": 2,
+    "title": "De la pluie et des bobos",
+    "startStopId": 1,
+    "endStopId": 9
+  },
+  {
+    "id": 3,
+    "title": "Du soleil et des becquets",
+    "startStopId": 9,
+    "endStopId": 15
+  },
+  {
+    "id": 4,
+    "title": "Muchas bultos",
+    "startStopId": 15,
+    "endStopId": 23
+  },
+  {
+    "id": 5,
+    "title": "Coldshower",
+    "startStopId": 23,
+    "endStopId": 31
+  },
+  {
+    "id": 6,
+    "title": "Retour au calme",
+    "startStopId": 31,
+    "endStopId": 47
+  },
+  {
+    "id": 7,
+    "title": "A l’heure d’hiver",
+    "startStopId": 47,
+    "endStopId": 59
+  },
+  {
+    "id": 8,
+    "title": "Azurément corsé",
+    "startStopId": 59,
+    "endStopId": 74
+  },
+  {
+    "id": 9,
+    "title": "Auguri",
+    "startStopId": 74,
+    "endStopId": 88
+  },
+  {
+    "id": 10,
+    "title": "Plein les bottes",
+    "startStopId": 88,
+    "endStopId": 106
+  },
+  {
+    "id": 11,
+    "title": "Afiyet olsun",
+    "startStopId": 106,
+    "endStopId": 124
+  },
+  {
+    "id": 12,
+    "title": "L’appel d’un ami",
+    "startStopId": 124,
+    "endStopId": 143
+  },
+  {
+    "id": 13,
+    "title": "Derniers assauts hivernaux",
+    "startStopId": 143,
+    "endStopId": 163
+  },
+  {
+    "id": 14,
+    "title": "Au fil de l’eau",
+    "startStopId": 163,
+    "endStopId": 176
+  },
+  {
+    "id": 15,
+    "title": "Printemps estival",
+    "startStopId": 176,
+    "endStopId": 194
+  },
+  {
+    "id": 16,
+    "title": "Addictions nordiques",
+    "startStopId": 194,
+    "endStopId": 207
+  },
+  {
+    "id": 17,
+    "title": "Percée montagneuse",
+    "startStopId": 207,
+    "endStopId": 220
+  },
+  {
+    "id": 18,
+    "title": "Le coeur des fjords",
+    "startStopId": 220,
+    "endStopId": 230
+  },
+  {
+    "id": 19,
+    "title": "Des Pops au plat",
+    "startStopId": 230,
+    "endStopId": 248
+  },
+  {
+    "id": 19,
+    "title": "Les rois de la route",
+    "startStopId": 248,
+    "endStopId": 263
+  },
+  {
+    "id": 20,
+    "title": "Finir ensemble",
+    "startStopId": 263,
+    "endStopId": 282
+  }
+]

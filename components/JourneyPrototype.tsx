@@ -1,6 +1,7 @@
 "use client";
 
 import stops from "@/data/stops.json";
+import articles from "@/data/articles.json";
 import gsap from "gsap";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -19,6 +20,13 @@ type Stop = {
   lng: number | string;
   km_total: number;
   day_number: number;
+};
+
+type Article = {
+  id: number;
+  title: string;
+  startStopId: number;
+  endStopId: number;
 };
 
 const WIDTH = 1200;
@@ -108,6 +116,61 @@ function interpolateByPathDistance(
   };
 }
 
+function getActiveArticle(stopId: number): Article {
+  return (
+    (articles as Article[]).find(
+      (article) =>
+        stopId >= article.startStopId && stopId <= article.endStopId
+    ) ?? (articles as Article[])[0]
+  );
+}
+
+function getSegmentTransform(
+  points: ReturnType<typeof projectPoints>,
+  startStopId: number,
+  endStopId: number
+) {
+  const segmentPoints = points.filter(
+    (p) => p.id >= startStopId && p.id <= endStopId
+  );
+
+  const minX = Math.min(...segmentPoints.map((p) => p.x));
+  const maxX = Math.max(...segmentPoints.map((p) => p.x));
+  const minY = Math.min(...segmentPoints.map((p) => p.y));
+  const maxY = Math.max(...segmentPoints.map((p) => p.y));
+
+  const padding = 30;
+  
+  const maxZoom = 12;
+  const minZoom = 1.4;
+
+  const targetWidth = WIDTH * 0.9;
+  const targetHeight = HEIGHT * 0.9;
+
+  const segmentWidth = maxX - minX;
+  const segmentHeight = maxY - minY;
+
+  const zoom = Math.min(
+    maxZoom,
+    Math.max(
+      minZoom,
+      Math.min(
+        targetWidth / (segmentWidth + padding),
+        targetHeight / (segmentHeight + padding)
+      )
+    )
+  );
+
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+
+  return {
+    zoom,
+    x: WIDTH / 2 - centerX * zoom,
+    y: HEIGHT / 2 - centerY * zoom,
+  };
+}
+
 export default function JourneyPrototype() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [progress, setProgress] = useState(0);
@@ -142,7 +205,6 @@ export default function JourneyPrototype() {
 
   const localProgress = segmentKm === 0 ? 0 : (targetKm - activeStop.km_total) / segmentKm;
 
-  
   const km =
     activeStop.km_total +
     (nextStop.km_total - activeStop.km_total) * localProgress;
@@ -153,35 +215,47 @@ export default function JourneyPrototype() {
 
   const displayedStop = current.point;
 
-  const zoom = 2.2;
+  const activeArticle = getActiveArticle(current.point.id);
 
-  const viewX = WIDTH / 2 - current.x * zoom;
-  const viewY = HEIGHT / 2 - current.y * zoom;
+  const segmentView = getSegmentTransform(
+    points,
+    activeArticle.startStopId,
+    activeArticle.endStopId
+  );
 
-  const mapTransform = `translate(${viewX}, ${viewY}) scale(${zoom})`;
+  const mapTransform = `translate(${segmentView.x}, ${segmentView.y}) scale(${segmentView.zoom})`;
 
   useEffect(() => {
 	  if (!containerRef.current) return;
 
 	  const trigger = ScrollTrigger.create({
-		trigger: containerRef.current,
+		trigger: "#journey",
 		start: "top top",
 		end: "bottom bottom",
 		scrub: 1,
 
 		onUpdate: (self) => {
-		  const raw = self.progress;
-    
-      const start_hold = 0.02;
-      const end_hold = 0.02;
+        const START_HOLD_VH = 1.0;
+        const END_HOLD_VH = 1.0;
 
-		  const adjusted = Math.max(
-			0,
-			Math.min(1, (raw - start_hold) / (1 - start_hold - end_hold ))
-		  );
+        const totalScrollPx = self.end - self.start;
+        const currentScrollPx = self.progress * totalScrollPx;
 
-		  setProgress(adjusted);
-		},
+        const startHoldPx = window.innerHeight * START_HOLD_VH;
+        const endHoldPx = window.innerHeight * END_HOLD_VH;
+
+        const travelScrollPx = totalScrollPx - startHoldPx - endHoldPx;
+
+        const adjusted = Math.max(
+          0,
+          Math.min(
+            1,
+            (currentScrollPx - startHoldPx) / travelScrollPx
+          )
+        );
+
+        setProgress(adjusted);
+      },
 	  });
 
 	  return () => trigger.kill();
@@ -234,12 +308,12 @@ export default function JourneyPrototype() {
               <path d={visiblePath} className="routeActive" />
 
               {points.slice(0, current.activeIndex + 1).map((p) => (
-                <circle key={p.id} cx={p.x} cy={p.y} r="3" className="stopDot" />
+                <circle key={p.id} cx={p.x} cy={p.y} r={3 / segmentView.zoom} className="stopDot" />
               ))}
 
               <g transform={`translate(${current.x}, ${current.y})`}>
-                <circle r="10" className="bikeBubble" />
-                <text textAnchor="middle" dominantBaseline="middle" fontSize="13">
+                <circle r={20 / segmentView.zoom} className="bikeBubble" />
+                <text  textAnchor="middle" dominantBaseline="middle" fontSize={20 / segmentView.zoom}>
                   🚴
                 </text>
               </g>
@@ -249,9 +323,8 @@ export default function JourneyPrototype() {
           <div className="hud">
             <div className="hudSmall">Jour {Math.round(day)}</div>
             <div className="hudBig">{Math.round(km).toLocaleString("fr-CH")} km</div>
-            <div className="hudPlace">
-              {displayedStop.city}, {displayedStop.country_name}
-            </div>
+            <div className="hudPlace">{displayedStop.city}, {displayedStop.country_name}</div>
+            <div className="hudArticle">{activeArticle.title}</div>
           </div>
         </div>
       </section>
