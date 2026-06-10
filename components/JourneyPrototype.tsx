@@ -1,16 +1,12 @@
 "use client";
 
+import { geoMercator } from "d3-geo";
 import stops from "@/data/stops.json";
 import articles from "@/data/articles.json";
 import gsap from "gsap";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 
-gsap.registerPlugin(
-  ScrollTrigger,
-  ScrollToPlugin
-);
+gsap.registerPlugin();
 
 type Stop = {
   id: number;
@@ -31,7 +27,6 @@ type Article = {
 
 const WIDTH = 1200;
 const HEIGHT = 800;
-const PADDING = 70;
 
 function projectPoints(stops: Stop[]) {
   const points = stops.map((s) => ({
@@ -40,24 +35,18 @@ function projectPoints(stops: Stop[]) {
     lngNum: Number(s.lng),
   }));
 
-  const minLat = Math.min(...points.map((p) => p.latNum));
-  const maxLat = Math.max(...points.map((p) => p.latNum));
-  const minLng = Math.min(...points.map((p) => p.lngNum));
-  const maxLng = Math.max(...points.map((p) => p.lngNum));
+  const projection = geoMercator()
+    .center([10, 49])
+    .scale(520)
+    .translate([WIDTH / 2, HEIGHT / 2]);
 
   return points.map((p) => {
-    const x =
-      PADDING +
-      ((p.lngNum - minLng) / (maxLng - minLng)) * (WIDTH - PADDING * 2);
-
-    const y =
-      PADDING +
-      ((maxLat - p.latNum) / (maxLat - minLat)) * (HEIGHT - PADDING * 2);
+    const projected = projection([p.lngNum, p.latNum]);
 
     return {
       ...p,
-      x,
-      y,
+      x: projected?.[0] ?? 0,
+      y: projected?.[1] ?? 0,
     };
   });
 }
@@ -85,9 +74,7 @@ function interpolateByPathDistance(
   const totalDistance = points[points.length - 1].pathDistance;
   const targetDistance = progress * totalDistance;
 
-  const index = points.findIndex(
-    (p) => p.pathDistance >= targetDistance
-  );
+  const index = points.findIndex((p) => p.pathDistance >= targetDistance);
 
   if (index <= 0) {
     return {
@@ -116,15 +103,6 @@ function interpolateByPathDistance(
   };
 }
 
-function getActiveArticle(stopId: number): Article {
-  return (
-    (articles as Article[]).find(
-      (article) =>
-        stopId >= article.startStopId && stopId <= article.endStopId
-    ) ?? (articles as Article[])[0]
-  );
-}
-
 function getSegmentTransform(
   points: ReturnType<typeof projectPoints>,
   startStopId: number,
@@ -140,7 +118,7 @@ function getSegmentTransform(
   const maxY = Math.max(...segmentPoints.map((p) => p.y));
 
   const padding = 60;
-  
+
   const maxZoom = 12;
   const minZoom = 1.4;
 
@@ -172,12 +150,18 @@ function getSegmentTransform(
 }
 
 export default function JourneyPrototype() {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const playTweenRef = useRef<gsap.core.Tween | null>(null);
+  const articleList = articles as Article[];
 
   const [progress, setProgress] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  
+  const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
+
+  const progressRef = useRef(0);
+  const travelTweenRef = useRef<gsap.core.Tween | null>(null);
+
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
+
   const [view, setView] = useState({
     x: 0,
     y: 0,
@@ -190,14 +174,14 @@ export default function JourneyPrototype() {
     zoom: 1,
   });
 
-  const isMapTransitioningRef = useRef(false);
-
   const points = useMemo(
     () => addPathDistance(projectPoints(stops as Stop[])),
     []
   );
- 
+
   const current = interpolateByPathDistance(points, progress);
+
+  const activeArticle = articleList[currentArticleIndex];
 
   const visiblePoints = [
     ...points.slice(0, current.activeIndex + 1),
@@ -218,7 +202,8 @@ export default function JourneyPrototype() {
   const segmentKm = nextStop.km_total - activeStop.km_total;
   const targetKm = progress * points[points.length - 1].km_total;
 
-  const localProgress = segmentKm === 0 ? 0 : (targetKm - activeStop.km_total) / segmentKm;
+  const localProgress =
+    segmentKm === 0 ? 0 : (targetKm - activeStop.km_total) / segmentKm;
 
   const km =
     activeStop.km_total +
@@ -230,8 +215,6 @@ export default function JourneyPrototype() {
 
   const displayedStop = current.point;
 
-  const activeArticle = getActiveArticle(current.point.id);
-
   const segmentView = getSegmentTransform(
     points,
     activeArticle.startStopId,
@@ -239,15 +222,12 @@ export default function JourneyPrototype() {
   );
 
   useEffect(() => {
-    isMapTransitioningRef.current = true;
-
     gsap.to(viewRef.current, {
       x: segmentView.x,
       y: segmentView.y,
       zoom: segmentView.zoom,
       duration: 1.2,
       ease: "power2.inOut",
-
       onUpdate: () => {
         setView({
           x: viewRef.current.x,
@@ -255,128 +235,117 @@ export default function JourneyPrototype() {
           zoom: viewRef.current.zoom,
         });
       },
-
-      onComplete: () => {
-        isMapTransitioningRef.current = false;
-      },
     });
-  }, [
-    segmentView.x,
-    segmentView.y,
-    segmentView.zoom,
-  ]);
+  }, [segmentView.x, segmentView.y, segmentView.zoom]);
 
   const mapTransform = `translate(${view.x}, ${view.y}) scale(${view.zoom})`;
 
-  useEffect(() => {
-	  if (!containerRef.current) return;
+  function getProgressForStopId(stopId: number) {
+    const point = points.find((p) => p.id === stopId) ?? points[0];
+    return point.pathDistance / points[points.length - 1].pathDistance;
+  }
 
-	  const trigger = ScrollTrigger.create({
-		trigger: "#journey",
-		start: "top top",
-		end: "bottom bottom",
-		scrub: 1,
+  function goToArticle(index: number) {
+    const clamped = Math.max(0, Math.min(index, articleList.length - 1));
+    const targetArticle = articleList[clamped];
+    const targetProgress = getProgressForStopId(targetArticle.endStopId);
 
-		onUpdate: (self) => {
-        const START_HOLD_VH = 1.0;
-        const END_HOLD_VH = 1.0;
+    setCurrentArticleIndex(clamped);
 
-        const totalScrollPx = self.end - self.start;
-        const currentScrollPx = self.progress * totalScrollPx;
+    travelTweenRef.current?.kill();
 
-        const startHoldPx = window.innerHeight * START_HOLD_VH;
-        const endHoldPx = window.innerHeight * END_HOLD_VH;
+    const animated = {
+      value: progressRef.current,
+    };
 
-        const travelScrollPx = totalScrollPx - startHoldPx - endHoldPx;
-
-        const adjusted = Math.max(
-          0,
-          Math.min(
-            1,
-            (currentScrollPx - startHoldPx) / travelScrollPx
-          )
-        );
-
-        setProgress(adjusted);
-      },
-	  });
-
-	  return () => trigger.kill();
-	}, []);
-
-  function togglePlay() {
-    if (isPlaying) {
-      playTweenRef.current?.pause();
-      setIsPlaying(false);
-      return;
-    }
-
-    playTweenRef.current = gsap.to(window, {
-      duration: 90,
-      scrollTo: {
-        y: document.body.scrollHeight,
-        autoKill: false,
-      },
+    travelTweenRef.current = gsap.to(animated, {
+      value: targetProgress,
+      duration: 5.0,
       ease: "none",
-      onComplete: () => {
-        setIsPlaying(false);
+      repeat: 0,
+      onUpdate: () => {
+        setProgress(animated.value);
       },
     });
-
-    setIsPlaying(true);
   }
 
   return (
-    <>
-    <button
-      className="playButton"
-      onClick={togglePlay}
-    >
-      {isPlaying ? "⏸ Pause" : "▶ Play"}
-    </button>
-
-    <main ref={containerRef} className="journey">	
-
-      <section className="intro">
-        <h1>Vent de dos</h1>
-        <p>Un voyage à vélo au fil du scroll.</p>
-      </section>
-
+    <main className="journey">
       <section className="mapSection" id="journey">
         <div className="mapSticky">
           <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="mapSvg">
             <rect width={WIDTH} height={HEIGHT} rx="32" className="mapBackground" />
 
             <g transform={mapTransform}>
+              <image
+                href="/maps/europe-simplified.svg"
+                x="0"
+                y="0"
+                width={WIDTH}
+                height={HEIGHT}
+                className="baseMapImage"
+              />
+
               <path d={visiblePath} className="routeActive" />
 
               {points.slice(0, current.activeIndex + 1).map((p) => (
-                <circle key={p.id} cx={p.x} cy={p.y} r={3 / segmentView.zoom} className="stopDot" />
+                <circle
+                  key={p.id}
+                  cx={p.x}
+                  cy={p.y}
+                  r={3 / segmentView.zoom}
+                  className="stopDot"
+                />
               ))}
 
               <g transform={`translate(${current.x}, ${current.y})`}>
                 <circle r={20 / segmentView.zoom} className="bikeBubble" />
-                <text  textAnchor="middle" dominantBaseline="middle" fontSize={20 / segmentView.zoom}>
+                <text
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize={20 / segmentView.zoom}
+                >
                   🚴
                 </text>
               </g>
             </g>
           </svg>
 
+          <div className="chapterRibbon">
+            <div className="activeChapterTitle">
+              {articleList[currentArticleIndex]?.title}
+            </div>
+
+            <div className="chapterNumbers">
+              {articleList.map((article, index) => (
+                <button
+                  key={article.id}
+                  onClick={() => goToArticle(index)}
+                  className={index === currentArticleIndex ? "active" : ""}
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="hud">
             <div className="hudSmall">Jour {Math.round(day)}</div>
-            <div className="hudBig">{Math.round(km).toLocaleString("fr-CH")} km</div>
-            <div className="hudPlace">{displayedStop.city}, {displayedStop.country_name}</div>
-            <div className="hudArticle">{activeArticle.title}</div>
+            <div className="hudBig">
+              {Math.round(km).toLocaleString("fr-CH")} km
+            </div>
+            <div className="hudPlace">
+              {displayedStop.city}, {displayedStop.country_name}
+            </div>
+          </div>
+
+         <div className="mapNavigation">
+            <button onClick={() => goToArticle(currentArticleIndex - 1)}>← précédent</button>
+            <span>✦</span>
+            <button onClick={() => goToArticle(currentArticleIndex + 1)}>suivant →</button>
           </div>
         </div>
       </section>
-
-      <section className="outro">
-        <h2>Fin du prototype</h2>
-        <p>Si cette sensation fonctionne, on passe à la vraie carte illustrée.</p>
-      </section>
     </main>
-	</>
   );
 }
