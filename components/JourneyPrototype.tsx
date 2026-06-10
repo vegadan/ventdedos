@@ -12,6 +12,7 @@ type Stop = {
   id: number;
   city: string;
   country_name: string;
+  country_code: string;
   lat: number | string;
   lng: number | string;
   km_total: number;
@@ -118,7 +119,6 @@ function getSegmentTransform(
   const maxY = Math.max(...segmentPoints.map((p) => p.y));
 
   const padding = 60;
-
   const maxZoom = 12;
   const minZoom = 1.4;
 
@@ -149,11 +149,34 @@ function getSegmentTransform(
   };
 }
 
+function seededRandom(seed: number) {
+  return ((seed * 9301 + 49297) % 233280) / 233280;
+}
+
+function getArticlePhotos(articleId: number) {
+  const positions = [
+    { left: 5, top: 16 },
+    { left: 5, top: 42 },
+    { left: 10, top: 68 },
+    { left: 78, top: 17 },
+    { left: 78, top: 43 },
+    { left: 72, top: 69 },
+  ];
+
+  return positions.map((pos, i) => ({
+    src: `/articles/${articleId}/${i + 1}.jpg`,
+    rotation: -7 + seededRandom(articleId * 100 + i) * 14,
+    left: pos.left,
+    top: pos.top,
+  }));
+}
+
 export default function JourneyPrototype() {
   const articleList = articles as Article[];
 
   const [progress, setProgress] = useState(0);
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
+  const [focusedPhoto, setFocusedPhoto] = useState<string | null>(null);
 
   const progressRef = useRef(0);
   const travelTweenRef = useRef<gsap.core.Tween | null>(null);
@@ -180,8 +203,16 @@ export default function JourneyPrototype() {
   );
 
   const current = interpolateByPathDistance(points, progress);
-
   const activeArticle = articleList[currentArticleIndex];
+  const [activePhotos, setActivePhotos] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch(`/api/article-photos?articleId=${activeArticle.id}`)
+      .then((res) => res.json())
+      .then((photos: string[]) => {
+        setActivePhotos(photos);
+      });
+  }, [activeArticle.id]);
 
   const visiblePoints = [
     ...points.slice(0, current.activeIndex + 1),
@@ -251,6 +282,7 @@ export default function JourneyPrototype() {
     const targetProgress = getProgressForStopId(targetArticle.endStopId);
 
     setCurrentArticleIndex(clamped);
+    setFocusedPhoto(null);
 
     travelTweenRef.current?.kill();
 
@@ -274,42 +306,101 @@ export default function JourneyPrototype() {
       <section className="mapSection" id="journey">
         <div className="mapSticky">
           <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="mapSvg">
-            <rect width={WIDTH} height={HEIGHT} rx="32" className="mapBackground" />
+            <defs>
+              <clipPath id="mapClip">
+                <rect x="0" y="0" width={WIDTH} height={HEIGHT} rx="32" />
+              </clipPath>
+            </defs>
 
-            <g transform={mapTransform}>
-              <image
-                href="/maps/europe-simplified.svg"
-                x="0"
-                y="0"
-                width={WIDTH}
-                height={HEIGHT}
-                className="baseMapImage"
-              />
+            <rect
+              width={WIDTH}
+              height={HEIGHT}
+              rx="32"
+              className="mapBackground"
+            />
 
-              <path d={visiblePath} className="routeActive" />
-
-              {points.slice(0, current.activeIndex + 1).map((p) => (
-                <circle
-                  key={p.id}
-                  cx={p.x}
-                  cy={p.y}
-                  r={3 / segmentView.zoom}
-                  className="stopDot"
+            <g clipPath="url(#mapClip)">
+              <g transform={mapTransform}>
+                <image
+                  href="/maps/europe-simplified.svg"
+                  x="0"
+                  y="0"
+                  width={WIDTH}
+                  height={HEIGHT}
+                  className="baseMapImage"
                 />
-              ))}
 
-              <g transform={`translate(${current.x}, ${current.y})`}>
-                <circle r={20 / segmentView.zoom} className="bikeBubble" />
-                <text
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize={20 / segmentView.zoom}
-                >
-                  🚴
-                </text>
+                <path d={visiblePath} className="routeActive" />
+
+                {points.slice(0, current.activeIndex + 1).map((p) => (
+                  <circle
+                    key={p.id}
+                    cx={p.x}
+                    cy={p.y}
+                    r={3 / segmentView.zoom}
+                    className="stopDot"
+                  />
+                ))}
+
+                <g transform={`translate(${current.x}, ${current.y})`}>
+                  <circle r={20 / segmentView.zoom} className="bikeBubble" />
+                  <text
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize={20 / segmentView.zoom}
+                  >
+                    🚴
+                  </text>
+                </g>
               </g>
             </g>
           </svg>
+
+          <div className="photoOverlay" key={activeArticle.id}>
+            {activePhotos.map((src, index) => {
+              const column = index % 2;
+              const row = Math.floor(index / 2);
+              const seed = activeArticle.id * 10000 + index * 997;
+              const baseRight = column === 0 ? -8 : 10;
+              const baseTop = 12 + row * 23;
+              const rotation = -18 + seededRandom(seed + 1) * 36;
+              const right = baseRight + (-2 + seededRandom(seed + 2) * 4);
+              const top = baseTop + (-4 + seededRandom(seed + 3) * 8);
+              const offsetX = -8 + seededRandom(seed + 4) * 16;
+              const offsetY = -10 + seededRandom(seed + 5) * 20;
+              const isFocused = focusedPhoto === src;
+
+              return (
+                <button
+                  key={src}
+                  type="button"
+                  className={`tapedPhotoHtml ${isFocused ? "is-focused" : ""}`}
+                  onClick={() => setFocusedPhoto(isFocused ? null : src)}
+                  style={
+                    {
+                      right: `${right}%`,
+                      top: `${top}%`,
+                      "--photo-transform": `translate(${offsetX}px, ${offsetY}px) rotate(${rotation}deg)`,
+                      transform: isFocused ? undefined : "var(--photo-transform)",
+                      animationDelay: `${index * 70}ms`,
+                      zIndex: isFocused ? 30 : index + 1,
+                    } as React.CSSProperties
+                  }
+                >
+                  <img src={src} alt="" />
+                </button>
+              );
+            })}
+          </div>
+
+          {focusedPhoto && (
+            <button
+              type="button"
+              className="photoBackdrop"
+              onClick={() => setFocusedPhoto(null)}
+              aria-label="Fermer la photo"
+            />
+          )}
 
           <div className="chapterRibbon">
             <div className="activeChapterTitle">
@@ -335,14 +426,21 @@ export default function JourneyPrototype() {
               {Math.round(km).toLocaleString("fr-CH")} km
             </div>
             <div className="hudPlace">
-              {displayedStop.city}, {displayedStop.country_name}
+              {displayedStop.city}, {displayedStop.country_code}
+            </div>
+            <div className="hudPlace">
+              
             </div>
           </div>
 
-         <div className="mapNavigation">
-            <button onClick={() => goToArticle(currentArticleIndex - 1)}>← précédent</button>
+          <div className="mapNavigation">
+            <button onClick={() => goToArticle(currentArticleIndex - 1)}>
+              ← précédent
+            </button>
             <span>✦</span>
-            <button onClick={() => goToArticle(currentArticleIndex + 1)}>suivant →</button>
+            <button onClick={() => goToArticle(currentArticleIndex + 1)}>
+              suivant →
+            </button>
           </div>
         </div>
       </section>
