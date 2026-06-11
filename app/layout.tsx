@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Caveat } from "next/font/google";
+import { Special_Elite } from "next/font/google";
+
+
 import "./globals.css";
+
+const specialElite = Special_Elite({
+  subsets: ["latin"],
+  weight: "400",
+});
 
 const caveat = Caveat({
   subsets: ["latin"],

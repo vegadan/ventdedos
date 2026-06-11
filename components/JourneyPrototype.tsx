@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { geoMercator } from "d3-geo";
@@ -24,6 +25,7 @@ type Article = {
   title: string;
   startStopId: number;
   endStopId: number;
+  text?: string;
 };
 
 const WIDTH = 1200;
@@ -153,33 +155,22 @@ function seededRandom(seed: number) {
   return ((seed * 9301 + 49297) % 233280) / 233280;
 }
 
-function getArticlePhotos(articleId: number) {
-  const positions = [
-    { left: 5, top: 16 },
-    { left: 5, top: 42 },
-    { left: 10, top: 68 },
-    { left: 78, top: 17 },
-    { left: 78, top: 43 },
-    { left: 72, top: 69 },
-  ];
-
-  return positions.map((pos, i) => ({
-    src: `/articles/${articleId}/${i + 1}.jpg`,
-    rotation: -7 + seededRandom(articleId * 100 + i) * 14,
-    left: pos.left,
-    top: pos.top,
-  }));
-}
-
 export default function JourneyPrototype() {
   const articleList = articles as Article[];
 
   const [progress, setProgress] = useState(0);
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
-  const [focusedPhoto, setFocusedPhoto] = useState<string | null>(null);
-
   const progressRef = useRef(0);
   const travelTweenRef = useRef<gsap.core.Tween | null>(null);
+  const photoRefs = useRef<(HTMLImageElement | null)[]>([]);
+  const viewerPhotoRef = useRef<HTMLImageElement | null>(null);
+  const [displayedText, setDisplayedText] = useState("");
+  const [selectedPhoto, setSelectedPhoto] = useState<{
+    src: string;
+    index: number;
+    from: DOMRect;
+  } | null>(null);
+
 
   useEffect(() => {
     progressRef.current = progress;
@@ -269,6 +260,38 @@ export default function JourneyPrototype() {
     });
   }, [segmentView.x, segmentView.y, segmentView.zoom]);
 
+
+  useEffect(() => {
+    const fullText = activeArticle.text ?? "Texte de l’article à ajouter ici...";
+    const animatedLength = 1000;
+
+    let index = 0;
+    let timeoutId: number | undefined;
+
+    const writeNext = () => {
+      index += 10;
+
+      if (index >= Math.min(animatedLength, fullText.length)) {
+        setDisplayedText(fullText);
+        return;
+      }
+
+      setDisplayedText(fullText.slice(0, index));
+      timeoutId = window.setTimeout(writeNext, 18);
+    };
+
+    timeoutId = window.setTimeout(() => {
+      setDisplayedText("");
+      writeNext();
+    }, 0);
+
+    return () => {
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [activeArticle.id, activeArticle.text]);
+
   const mapTransform = `translate(${view.x}, ${view.y}) scale(${view.zoom})`;
 
   function getProgressForStopId(stopId: number) {
@@ -282,7 +305,7 @@ export default function JourneyPrototype() {
     const targetProgress = getProgressForStopId(targetArticle.endStopId);
 
     setCurrentArticleIndex(clamped);
-    setFocusedPhoto(null);
+    setSelectedPhoto(null);
 
     travelTweenRef.current?.kill();
 
@@ -300,6 +323,10 @@ export default function JourneyPrototype() {
       },
     });
   }
+
+  const PHOTO_AREA_TOP = 5;
+  const PHOTO_AREA_HEIGHT = 70;
+  const PHOTOS_PER_ROW = 2;
 
   return (
     <main className="journey">
@@ -355,51 +382,112 @@ export default function JourneyPrototype() {
               </g>
             </g>
           </svg>
-
+  
           <div className="photoOverlay" key={activeArticle.id}>
             {activePhotos.map((src, index) => {
-              const column = index % 2;
-              const row = Math.floor(index / 2);
+              const column = index % PHOTOS_PER_ROW;
+              const row = Math.floor(index / PHOTOS_PER_ROW);
+              const rowCount = Math.ceil(activePhotos.length / PHOTOS_PER_ROW);
               const seed = activeArticle.id * 10000 + index * 997;
               const baseRight = column === 0 ? -8 : 10;
-              const baseTop = 12 + row * 23;
+              const rowStep = rowCount <= 1 ? 0 : PHOTO_AREA_HEIGHT / (rowCount - 1);
+              const baseTop = rowCount <= 1 ? PHOTO_AREA_TOP + PHOTO_AREA_HEIGHT / 2 : PHOTO_AREA_TOP + row * rowStep;
               const rotation = -18 + seededRandom(seed + 1) * 36;
               const right = baseRight + (-2 + seededRandom(seed + 2) * 4);
-              const top = baseTop + (-4 + seededRandom(seed + 3) * 8);
-              const offsetX = -8 + seededRandom(seed + 4) * 16;
-              const offsetY = -10 + seededRandom(seed + 5) * 20;
-              const isFocused = focusedPhoto === src;
+              const top = baseTop + (-3 + seededRandom(seed + 3) * 6);
 
               return (
                 <button
-                  key={src}
-                  type="button"
-                  className={`tapedPhotoHtml ${isFocused ? "is-focused" : ""}`}
-                  onClick={() => setFocusedPhoto(isFocused ? null : src)}
-                  style={
-                    {
-                      right: `${right}%`,
-                      top: `${top}%`,
-                      "--photo-transform": `translate(${offsetX}px, ${offsetY}px) rotate(${rotation}deg)`,
-                      transform: isFocused ? undefined : "var(--photo-transform)",
-                      animationDelay: `${index * 70}ms`,
-                      zIndex: isFocused ? 30 : index + 1,
-                    } as React.CSSProperties
-                  }
+                  className="tapedPhotoButton"
+                  key={`${activeArticle.id}-${src}`}
+                  style={{
+                    right: `${right}%`,
+                    top: `${top}%`,
+                    "--photo-rotation": `${rotation}deg`,
+                     "--photo-delay": `${index * 0.5}s`,
+                  } as React.CSSProperties}
+                  onClick={() => {
+                    const rect = photoRefs.current[index]?.getBoundingClientRect();
+                    if (!rect) return;
+
+                    setSelectedPhoto({
+                      src,
+                      index,
+                      from: rect,
+                    });
+                  }}
                 >
-                  <img src={src} alt="" />
+                  <img
+                    ref={(el) => {
+                      photoRefs.current[index] = el;
+                    }}
+                    src={src}
+                    alt=""
+                    className="tapedPhoto"
+                  />
                 </button>
               );
             })}
           </div>
 
-          {focusedPhoto && (
-            <button
-              type="button"
-              className="photoBackdrop"
-              onClick={() => setFocusedPhoto(null)}
-              aria-label="Fermer la photo"
-            />
+          {selectedPhoto && (
+            <div
+              className="photoViewer"
+              onClick={() => {
+                const img = viewerPhotoRef.current;
+
+                if (!img) {
+                  setSelectedPhoto(null);
+                  return;
+                }
+
+                gsap.to(img, {
+                  opacity: 0,
+                  scale: 0.96,
+                  duration: 0.25,
+                  ease: "power2.out",
+                  onComplete: () => setSelectedPhoto(null),
+                });
+              }}
+            >
+              <img
+                ref={(el) => {
+                  viewerPhotoRef.current = el;
+
+                  if (!el || !selectedPhoto) return;
+
+                  const targetWidth = Math.min(window.innerWidth * 0.72, 760);
+                  const targetHeight = Math.min(window.innerHeight * 0.72, 560);
+
+                  gsap.set(el, {
+                    position: "fixed",
+                    left: selectedPhoto.from.left,
+                    top: selectedPhoto.from.top,
+                    width: selectedPhoto.from.width,
+                    height: selectedPhoto.from.height,
+                    x: 0,
+                    y: 0,
+                    opacity: 1,
+                  });
+
+                  gsap.to(el, {
+                    left: "50%",
+                    top: "50%",
+                    xPercent: -50,
+                    yPercent: -50,
+                    width: targetWidth,
+                    height: targetHeight,
+                    rotation: 0,
+                    duration: 0.65,
+                    ease: "power3.inOut",
+                  });
+                }}
+                src={selectedPhoto.src}
+                alt=""
+                className="viewerPhoto"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
           )}
 
           <div className="chapterRibbon">
@@ -420,6 +508,15 @@ export default function JourneyPrototype() {
             </div>
           </div>
 
+          <div className="articleStoryTape">
+            <div className="articleStoryText">
+              <p>
+                {displayedText}
+                <span className="writingCursor">|</span>
+              </p>
+            </div>
+          </div>
+          
           <div className="hud">
             <div className="hudSmall">Jour {Math.round(day)}</div>
             <div className="hudBig">
