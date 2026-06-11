@@ -1,5 +1,5 @@
-import JourneyPrototype from "@/components/JourneyPrototype";
+import Main from "@/components/Main";
 
 export default function Home() {
-  return <JourneyPrototype />;
+  return <Main />;
 }
