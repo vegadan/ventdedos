@@ -7,6 +7,8 @@ export type Stop = {
   lng: number | string;
   km_total: number;
   day_number: number;
+  arrival_date?: string;
+  departure_date?: string;
 };
 
 export type Article = {
@@ -14,7 +16,7 @@ export type Article = {
   title: string;
   startStopId: number;
   endStopId: number;
-  text_orign?: string;
+  text_origin?: string;
   text_ia_v1?: string;
   guestStory?: GuestStory;
 };
@@ -39,4 +41,10 @@ export type MapView = {
 export type GuestStory = {
   author: string;
   text: string;
+};
+
+export type Video = {
+  id: number;
+  title: string;
+  youtubeId: string;
 };

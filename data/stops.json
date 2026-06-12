@@ -8,12 +8,12 @@
     "lng": "-1.061701",
     "arrival_date": "2017-09-13",
     "departure_date": "2017-09-13",
-    "nights": 1,
+    "nights": 0,
     "km_stage": 0,
     "night_type": "maison",
     "description": "Départ",
     "km_total": 0,
-    "day_number": 1
+    "day_number": 0
   },
   {
     "id": 2,

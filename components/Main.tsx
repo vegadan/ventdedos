@@ -2,16 +2,17 @@
 
 import stops from "@/data/stops.json";
 import articles from "@/data/articles.json";
+
 import gsap from "gsap";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import VideoOverlay from "@/components/VideoOverlay";
 import ArticleStory from "@/components/ArticleStory";
 import ChapterRibbon from "@/components/ChapterRibbon";
 import HudCard from "@/components/HudCard";
 import JourneyMap from "@/components/JourneyMap";
 import MapNavigation from "@/components/MapNavigation";
 import PhotoOverlay from "@/components/PhotoOverlay";
-import GuestStoryNote from "@/components/GuestStoryNote";
 
 import {
   addPathDistance,
@@ -28,15 +29,23 @@ export default function Main() {
   const articleList = articles as Article[];
 
   const [progress, setProgress] = useState(0);
+  const [isLoopingSegment, setIsLoopingSegment] = useState(false);
+  const [isMapOnly, setIsMapOnly] = useState(true);
+  const [isMapIntroDone, setIsMapIntroDone] = useState(false);
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
+  const [selectedStopId, setSelectedStopId] = useState<number | null>(null);
   const [hoveredArticleIndex, setHoveredArticleIndex] = useState<number | null>(null);
-  const [activePhotos, setActivePhotos] = useState<string[]>([]);
+  const [hoveredStopId, setHoveredStopId] = useState<number | null>(null);
+ 
+
+
   const [view, setView] = useState<MapView>({
     x: 0,
     y: 0,
     zoom: 1,
   });
 
+  const hasPlayedIntroRef = useRef(false);
   const progressRef = useRef(0);
   const travelTweenRef = useRef<gsap.core.Tween | null>(null);
 
@@ -58,24 +67,44 @@ export default function Main() {
   const current = interpolateByPathDistance(points, progress);
   const activeArticle = articleList[currentArticleIndex];
 
-  useEffect(() => {
-    fetch(`/api/article-photos?articleId=${activeArticle.id}`)
-      .then((res) => res.json())
-      .then((photos: string[]) => {
-        setActivePhotos(photos);
-      });
+  const activePhotos = useMemo(() => {
+    return Array.from({ length: 10 }, (_, index) => {
+      return `/articles/${activeArticle.id}/${index + 1}.jpg`;
+    });
   }, [activeArticle.id]);
 
+  function getProgressForStopId(stopId: number) {
+    const point = points.find((p) => p.id === stopId) ?? points[0];
+    return point.pathDistance / points[points.length - 1].pathDistance;
+  }
+
+  const activeSegmentStartProgress = getProgressForStopId(activeArticle.startStopId);
+
+  const visibleProgress =
+    isLoopingSegment && !isMapOnly ? activeSegmentStartProgress : progress;
+
+  const visibleCurrent = interpolateByPathDistance(points, visibleProgress);
+
   const visiblePoints = [
-    ...points.slice(0, current.activeIndex + 1),
+    ...points.slice(0, visibleCurrent.activeIndex + 1),
     {
-      ...current.point,
-      x: current.x,
-      y: current.y,
+      ...visibleCurrent.point,
+      x: visibleCurrent.x,
+      y: visibleCurrent.y,
     },
   ];
 
   const visiblePath = visiblePoints
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
+    .join(" ");
+
+  const activeSegmentPoints = points.filter(
+    (p) =>
+      p.id >= activeArticle.startStopId &&
+      p.id <= activeArticle.endStopId
+  );
+
+  const activeSegmentPath = activeSegmentPoints
     .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
     .join(" ");
 
@@ -87,16 +116,19 @@ export default function Main() {
 
   const localProgress =
     segmentDistance === 0 ? 0 : (targetDistance - activeStop.pathDistance) / segmentDistance;
-  
-    const km =
-    activeStop.km_total +
-    (nextStop.km_total - activeStop.km_total) * localProgress;
+
+  const selectedStop =
+    points.find((p) => p.id === hoveredStopId) ??
+    points.find((p) => p.id === selectedStopId) ??
+    current.point;
+
+  const km =
+    selectedStop.km_total +
+    (nextStop.km_total - selectedStop.km_total) * localProgress;
 
   const day =
-    activeStop.day_number +
-    (nextStop.day_number - activeStop.day_number) * localProgress;
-
-  const displayedStop = current.point;
+    selectedStop.day_number +
+    (nextStop.day_number - selectedStop.day_number) * localProgress;
 
   const segmentView = getSegmentTransform(
     points,
@@ -105,6 +137,8 @@ export default function Main() {
   );
 
   useEffect(() => {
+    if (isMapOnly) return;
+
     gsap.to(viewRef.current, {
       x: segmentView.x,
       y: segmentView.y,
@@ -119,14 +153,9 @@ export default function Main() {
         });
       },
     });
-  }, [segmentView.x, segmentView.y, segmentView.zoom]);
+  }, [segmentView.x, segmentView.y, segmentView.zoom, isMapOnly]);
 
   const mapTransform = `translate(${view.x}, ${view.y}) scale(${view.zoom})`;
-
-  function getProgressForStopId(stopId: number) {
-    const point = points.find((p) => p.id === stopId) ?? points[0];
-    return point.pathDistance / points[points.length - 1].pathDistance;
-  }
 
   function goToArticle(index: number) {
     const clamped = Math.max(0, Math.min(index, articleList.length - 1));
@@ -134,6 +163,7 @@ export default function Main() {
     const targetProgress = getProgressForStopId(targetArticle.endStopId);
 
     setCurrentArticleIndex(clamped);
+    setIsLoopingSegment(false);
 
     travelTweenRef.current?.kill();
 
@@ -148,25 +178,135 @@ export default function Main() {
       repeat: 0,
       onUpdate: () => {
         setProgress(animated.value);
+
+        const animatedCurrent = interpolateByPathDistance(points, animated.value);
+        setSelectedStopId(animatedCurrent.point.id);
+      },
+      onComplete: () => {
+        setProgress(targetProgress);
+        setSelectedStopId(targetArticle.endStopId);
+        setIsLoopingSegment(true);
       },
     });
   }
 
+  function playFullMap() {
+    setIsMapIntroDone(false);
+    travelTweenRef.current?.kill();
+
+    const startView = getSegmentTransform(
+      points,
+      articleList[0].startStopId,
+      articleList[0].endStopId
+    );
+
+    const endView = getSegmentTransform(
+      points,
+      articleList[0].startStopId,
+      articleList[articleList.length - 1].endStopId
+    );
+
+    setIsMapOnly(true);
+    setIsLoopingSegment(false);
+    setSelectedStopId(null);
+    setHoveredStopId(null);
+    setProgress(0);
+
+    viewRef.current = {
+      x: startView.x,
+      y: startView.y,
+      zoom: startView.zoom,
+    };
+
+    setView({
+      x: startView.x,
+      y: startView.y,
+      zoom: startView.zoom,
+    });
+
+    const animated = {
+      progress: 0,
+      x: startView.x,
+      y: startView.y,
+      zoom: startView.zoom,
+    };
+
+    travelTweenRef.current = gsap.to(animated, {
+      progress: 1,
+      x: endView.x,
+      y: endView.y,
+      zoom: endView.zoom,
+      duration: 3,
+      ease: "power1.out",
+      onUpdate: () => {
+        setProgress(animated.progress);
+
+        viewRef.current.x = animated.x;
+        viewRef.current.y = animated.y;
+        viewRef.current.zoom = animated.zoom;
+
+        setView({
+          x: animated.x,
+          y: animated.y,
+          zoom: animated.zoom,
+        });
+      },
+      onComplete: () => {
+        setProgress(1);
+        setIsMapIntroDone(true);
+      },
+    });
+  }
+
+  useEffect(() => {
+    if (!isMapOnly || hasPlayedIntroRef.current) return;
+
+    hasPlayedIntroRef.current = true;
+    playFullMap();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMapOnly]);
+
+  function toggleMapMode() {
+    if (isMapOnly) {
+      travelTweenRef.current?.kill();
+
+      progressRef.current = 0;
+      setProgress(0);
+      setCurrentArticleIndex(0);
+      setIsMapOnly(false);
+
+      goToArticle(0);
+      return;
+    }
+
+    playFullMap();
+  }
+
   return (
     <main className="journey">
+      
       <section className="mapSection" id="journey">
+
         <div className="mapSticky">
+        
           <JourneyMap
             mapTransform={mapTransform}
             visiblePath={visiblePath}
+            activeSegmentPath={activeSegmentPath}
             points={points}
             current={current}
             segmentView={segmentView}
+            isLoopingSegment={isLoopingSegment}
+            selectedStopId={selectedStopId}
+            onSelectStop={setSelectedStopId}
+            onHoverStop={setHoveredStopId}
+            isMapOnly={isMapOnly}
           />
 
           <PhotoOverlay
             activeArticle={activeArticle}
             activePhotos={activePhotos}
+            isMapOnly={isMapOnly}
           />
 
           <ChapterRibbon
@@ -175,24 +315,31 @@ export default function Main() {
             hoveredArticleIndex={hoveredArticleIndex}
             onSelectArticle={goToArticle}
             onHoverArticle={setHoveredArticleIndex}
+            isMapOnly={isMapOnly}
           />
 
-          <div className="articleArea">
-            <ArticleStory activeArticle={activeArticle} />
+          <VideoOverlay 
+            isMapOnly={isMapOnly}
+          />
 
-            {activeArticle.guestStory && (
-              <GuestStoryNote
-                key={activeArticle.id}
-                story={activeArticle.guestStory}
-              />
-            )}
-          </div>
+          <ArticleStory 
+            activeArticle={activeArticle}
+            isMapOnly={isMapOnly}
+          />
 
-          <HudCard day={day} km={km} displayedStop={displayedStop} />
+          <HudCard 
+            day={day}
+            km={km} 
+            displayedStop={selectedStop} 
+            isMapOnly={isMapOnly} 
+          />
 
           <MapNavigation
-            onPrevious={() => goToArticle(currentArticleIndex - 1)}
-            onNext={() => goToArticle(currentArticleIndex + 1)}
+              onPrevious={() => goToArticle(currentArticleIndex - 1)}
+              onNext={() => goToArticle(currentArticleIndex + 1)}
+              onToggle={toggleMapMode}
+              isMapOnly={isMapOnly}
+              isMapIntroDone={isMapIntroDone}
           />
         </div>
       </section>

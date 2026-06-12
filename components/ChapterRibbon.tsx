@@ -6,6 +6,7 @@ type ChapterRibbonProps = {
   hoveredArticleIndex: number | null;
   onSelectArticle: (index: number) => void;
   onHoverArticle: (index: number | null) => void;
+  isMapOnly: boolean;
 };
 
 export default function ChapterRibbon({
@@ -14,7 +15,11 @@ export default function ChapterRibbon({
   hoveredArticleIndex,
   onSelectArticle,
   onHoverArticle,
+  isMapOnly
 }: ChapterRibbonProps) {
+
+  if(isMapOnly) return null;
+
   const displayedArticleIndex = hoveredArticleIndex ?? currentArticleIndex;
 
   return (

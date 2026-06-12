@@ -386,6 +386,41 @@
       font-size="5"
     >POLOGNE</text>
 <text
+      x="727.06"
+      y="303.42"
+      
+      class="country-label"
+      font-size="5"
+    >LITUANIE</text>
+<text
+      x="745.21"
+      y="282.23"
+      
+      class="country-label"
+      font-size="5"
+    >LETTONIE</text>
+<text
+      x="745.21"
+      y="251.65"
+      
+      class="country-label"
+      font-size="5"
+    >ESTONIE</text>
+<text
+      x="799.67"
+      y="270.52"
+      
+      class="country-label"
+      font-size="5"
+    >RUSSIE</text>
+<text
+      x="763.36"
+      y="337.73"
+      
+      class="country-label"
+      font-size="5"
+    >BIÉLORUSSIE</text>
+<text
       x="645.38"
       y="391.65"
       
@@ -421,12 +456,47 @@
       font-size="3"
     >BOSNIE</text>
 <text
+      x="684.40"
+      y="480.98"
+      
+      class="country-label"
+      font-size="1.7"
+    >MONTÉNÉGRO</text>
+<text
+      x="698.93"
+      y="483.45"
+      
+      class="country-label"
+      font-size="2"
+    >KOSOVO</text>
+<text
+      x="707.09"
+      y="495.68"
+      
+      class="country-label"
+      font-size="2.5"
+    >MACÉDOINE</text>
+<text
       x="697.11"
       y="465.99"
       
       class="country-label"
       font-size="3"
     >SERBIE</text>
+<text
+      x="684.40"
+      y="427.13"
+      
+      class="country-label"
+      font-size="5"
+    >HONGRIE</text>
+<text
+      x="689.85"
+      y="402.76"
+      
+      class="country-label"
+      font-size="5"
+    >SLOVAQUIE</text>
 <text
       x="736.14"
       y="444.23"
@@ -456,8 +526,8 @@
       font-size="3"
     >ALBANIE</text>
 <text
-      x="790.59"
-      y="400.00"
+      x="772.44"
+      y="393.05"
       
       class="country-label"
       font-size="5"

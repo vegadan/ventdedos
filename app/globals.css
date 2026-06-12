@@ -10,8 +10,27 @@ body {
 .journey {
   display: block;
   gap: 1rem;
-  padding: 1rem;
+  padding: 0;
   justify-content: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.chapterRibbon {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100vw - 80px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 650px;
+  padding: 0.4rem 1rem;
+  background: rgba(255, 250, 240, 0.94);
+  border-radius: 18px;
+  box-shadow: 0 4px 14px rgba(70, 45, 20, 0.12);
 }
 
 .chapterRibbon::before,
@@ -37,22 +56,6 @@ body {
   transform: rotate(3deg);
 }
 
-.chapterRibbon {
-  position: absolute;
-  top: 0.8rem;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: calc(100vw - 80px);
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 700px;
-  padding: 0.4rem 1rem;
-  background: rgba(255, 250, 240, 0.94);
-  border-radius: 18px;
-  box-shadow: 0 4px 14px rgba(70, 45, 20, 0.12);
-}
 
 .activeChapterTitle {
   font-family: var(--font-caveat);
@@ -86,7 +89,7 @@ body {
 }
 
 .chapterNumbers button:hover {
-  transform: scale(1.15);
+  transform: scale(1.25);
 }
 
 .chapterNumbers button.active {
@@ -98,13 +101,13 @@ body {
 }
 
 .mapSection {
-  min-height: calc(100vh - 4rem);
+  min-height: calc(100vh);
 }
 
 .mapSticky {
   position: sticky;
   top: 2rem;
-  height: calc(100vh - 4rem);
+  height: calc(100vh);
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -131,7 +134,7 @@ body {
 
 .routeActive {
   fill: none;
-  stroke: #c85d32;
+  stroke: #c07c61c9;
   stroke-width: 4;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -143,6 +146,40 @@ body {
   fill: #5d4935;
   opacity: 0.45;
   vector-effect: non-scaling-stroke;
+  transition: transform 0.2s ease, opacity 0.2s ease, fill 0.2s ease;
+  transform-box: fill-box;
+  transform-origin: center;
+  cursor: pointer;
+}
+
+.stopDot:hover {
+  transform: scale(2);
+  opacity: 0.8;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.25));
+}
+
+.stopDot.selected {
+  transform: scale(2);
+  opacity: 1;
+  fill: #c85d32;
+  stroke: #fff8e8;
+  stroke-width: 1.5;
+}
+
+.stopLabel {
+  fill: #2d2418;
+  font-size: 12px;
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.stopPoint {
+  cursor: pointer;
+}
+
+.selectedStopBike {
+  pointer-events: none;
 }
 
 .bikeBubble {
@@ -158,7 +195,8 @@ body {
   top: auto;
   transform: none;
   z-index: 20;
-  padding: 1.2rem 1.6rem;
+  padding: 1.2rem;
+  padding-right: 0.0rem;
   background: #ebdcbb;
   border-radius: 6px;
   box-shadow: 0 10px 24px rgba(60, 35, 20, 0.18);
@@ -205,7 +243,7 @@ body {
   max-height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 0.4rem;
+  padding-right: 1.2rem;
   padding-bottom: 1rem;
   box-sizing: border-box;
   font-family: "Special Elite", serif;
@@ -214,7 +252,7 @@ body {
   font-weight: 300;
 }
 
-.articleStoryText  p {
+.articleStoryText p {
   margin: 5;
   white-space: pre-line;
   text-align: justify;
@@ -231,10 +269,44 @@ body {
   border-radius: 999px;
 }
 
+.articleStoryIntro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: justify;
+}
+
+.articleIntroLogo {
+  width: 220px;
+  height: auto;
+  margin-bottom: 1.5rem;
+  object-fit: contain;
+}
+
+.articleIntroText {
+  height: auto;
+  overflow: visible;
+  padding-right: 1.2rem;
+  font-family: "Special Elite", serif;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: #4f4234;
+}
+
+.articleIntroText p {
+  margin: 0 0 1.25rem 0;
+  text-align: justify;
+  white-space: normal;
+}
+
+.articleIntroText p:last-child {
+  margin-bottom: 0;
+}
+
 .hud {
   position: absolute;
   left: calc(50% - min(46vw, 650px));
-  bottom: 20px;
+  bottom: 50px;
   transform: translateX(-35%) rotate(-2.5deg);
   z-index: 20;
   padding: 1.2rem 1.6rem;
@@ -336,7 +408,7 @@ path {
 
 .photoOverlay {
   position: absolute;
-  width: min(92vw, 1200px);
+  width: min(96vw, 1400px);
   aspect-ratio: 1200 / 800;
   left: 50%;
   top: 50%;
@@ -345,19 +417,6 @@ path {
   pointer-events: none;
   overflow: visible;
   border-radius: 32px;
-}
-
-.tapedPhotoButton {
-  position: absolute;
-  border: 0;
-  padding: 0;
-  background: transparent;
-  cursor: pointer;
-  z-index: 8;
-  pointer-events: auto;
-  animation: photoDropIn 0.55s cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
-  transform: rotate(var(--photo-rotation));
-  animation-delay: var(--photo-delay);
 }
 
 .tapedPhoto {
@@ -369,6 +428,32 @@ path {
   background: #fff8e8;
   border-radius: 5px;
   box-shadow: 0 10px 18px rgba(60, 35, 20, 0.24);
+}
+
+.tapedPhotoButton {
+  position: absolute;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  z-index: 8;
+  pointer-events: auto;
+
+  animation: photoDropIn 0.55s cubic-bezier(0.2, 0.9, 0.25, 1.15) backwards;
+  transform: rotate(var(--photo-rotation));
+  animation-delay: var(--photo-delay);
+
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+
+.tapedPhotoButton:hover {
+  transform:
+    translateY(-6px)
+    rotate(var(--photo-rotation));
+
+  filter: drop-shadow(0 6px 8px rgba(60, 35, 20, 0.22));
 }
 
 .tapedPhotoButton::before {
@@ -442,19 +527,12 @@ path {
   }
 }
 
-.navLogo {
-  width: 42px;
-  height: 42px;
-  object-fit: contain;
-  transform: scale(1.3);
-  transform-origin: center;
-  pointer-events: none;
-}
+
 
 .articleArea {
   position: absolute;
   left: calc(50% - min(46vw, 650px));
-  top: 120px;
+  top: 150px;
   transform: translateX(-35%);
   z-index: 18;
   width: 400px;
@@ -522,7 +600,7 @@ path {
 }
 
 .guestStoryNotePaper p {
-  margin: 0;
+  margin: 10;
   white-space: pre-line;
   font-size: 1.2rem;
   line-height: 1.25;
@@ -540,7 +618,7 @@ path {
 .mapNavigation {
   position: absolute;
   left: 50%;
-  bottom: 1.5rem;
+  bottom: 50px;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
@@ -579,7 +657,7 @@ path {
 }
 
 .mapNavigation button:hover {
-  transform: scale(1.05);
+  transform: scale(1.15);
   opacity: 1;
 }
 
@@ -589,6 +667,210 @@ path {
   color: rgba(200, 93, 50, 0.45);
 }
 
+.mapNavigationIntro {
+  opacity: 0;
+  transform: translateX(-50%) translateY(20px);
+  pointer-events: none;
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+}
+
+.mapNavigationIntro.mapNavigationVisible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.mapOverviewButton {
+  width: 55px;
+  height: 20px;
+  border: 0;
+  border-radius: 11%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.mapOverviewIcon {
+  width: 35px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mapOverviewButton:hover .mapOverviewIcon {
+  transform: scale(1.15);
+}
+
+.routeLoopSegment {
+  fill: none;
+  stroke: #c85d32;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 8  10;
+  animation: routeLoopSegmentMove 1.2s linear infinite;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.globalVideoButtons {
+  position: absolute;
+  left: calc(50% - min(46vw, 650px));
+  top: 50px;
+  transform: translateX(-35%);
+  z-index: 22;
+
+  width: 400px;
+  box-sizing: border-box;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.globalVideoButton {
+  position: relative;
+
+  width: 110px;
+  height: 70px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: #f4ecd8;
+  color: #9f3f2f;
+
+  cursor: pointer;
+
+  box-shadow: 0 4px 12px rgba(70, 45, 20, 0.15);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.globalVideoButton::before {
+  content: "";
+  position: absolute;
+
+  top: -10px;
+  left: 50%;
+
+  width: 48px;
+  height: 16px;
+
+  transform: translateX(-50%) rotate(-3deg);
+
+  background: rgba(245, 220, 160, 0.75);
+  border: 1px solid rgba(120, 90, 45, 0.15);
+  border-radius: 2px;
+
+  pointer-events: none;
+}
+
+.globalVideoButton:nth-child(1)::before {
+  transform: translateX(-50%) rotate(-5deg);
+}
+
+.globalVideoButton:nth-child(2)::before {
+  transform: translateX(-50%) rotate(2deg);
+}
+
+.globalVideoButton:nth-child(3)::before {
+  transform: translateX(-50%) rotate(-1deg);
+}
+
+.globalVideoButton:hover {
+  transform: translateY(-2px) rotate(-1deg);
+  box-shadow: 0 8px 18px rgba(70, 45, 20, 0.25);
+}
+
+.videoPlayIcon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.videoTitle {
+  font-family: var(--font-caveat);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #6b533e;
+}
+
+.videoOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+
+  background: rgba(35, 25, 15, 0.38);
+  backdrop-filter: blur(3px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.videoFrame {
+  position: relative;
+
+  width: min(1000px, 80vw);
+  aspect-ratio: 16 / 9;
+
+  padding: 12px;
+  background: #fff8e8;
+
+  border-radius: 6px;
+
+  box-shadow: 0 18px 50px rgba(20, 10, 0, 0.45);
+
+  animation: videoZoomIn 0.25s ease-out;
+}
+
+@keyframes videoZoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85) rotate(-4deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.videoFrame iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 4px;
+}
+
+.globalVideoButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(70, 45, 20, 0.25);
+}
+
+@keyframes routeLoopSegmentMove {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -48;
+  }
+}
 
 @media (max-width: 768px) {
   .journey {

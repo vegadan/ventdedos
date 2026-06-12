@@ -7,11 +7,13 @@ import type { Article } from "@/types/journey";
 type PhotoOverlayProps = {
   activeArticle: Article;
   activePhotos: string[];
+  isMapOnly: boolean;
 };
 
 export default function PhotoOverlay({
   activeArticle,
   activePhotos,
+  isMapOnly
 }: PhotoOverlayProps) {
   const photoRefs = useRef<(HTMLImageElement | null)[]>([]);
   const viewerPhotoRef = useRef<HTMLImageElement | null>(null);
@@ -22,6 +24,8 @@ export default function PhotoOverlay({
     from: DOMRect;
   } | null>(null);
 
+  if (isMapOnly) return null;
+  
   const PHOTO_AREA_TOP = 5;
   const PHOTO_AREA_HEIGHT = 70;
   const PHOTOS_PER_ROW = 2;
