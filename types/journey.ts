@@ -14,7 +14,9 @@ export type Article = {
   title: string;
   startStopId: number;
   endStopId: number;
-  text?: string;
+  text_orign?: string;
+  text_ia_v1?: string;
+  guestStory?: GuestStory;
 };
 
 export type ProjectedStop = Stop & {
@@ -32,4 +34,9 @@ export type MapView = {
   x: number;
   y: number;
   zoom: number;
+};
+
+export type GuestStory = {
+  author: string;
+  text: string;
 };

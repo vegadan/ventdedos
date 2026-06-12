@@ -9,7 +9,7 @@ export default function ArticleStory({ activeArticle }: ArticleStoryProps) {
   const [displayedText, setDisplayedText] = useState("");
 
   useEffect(() => {
-    const fullText = activeArticle.text ?? "Texte de l’article à ajouter ici...";
+    const fullText = activeArticle.text_ia_v1 ?? "Texte de l’article à ajouter ici...";
     const animatedLength = 1000;
 
     let index = 0;
@@ -37,7 +37,7 @@ export default function ArticleStory({ activeArticle }: ArticleStoryProps) {
         window.clearTimeout(timeoutId);
       }
     };
-  }, [activeArticle.id, activeArticle.text]);
+  }, [activeArticle.id, activeArticle.text_ia_v1]);
 
   return (
     <div className="articleStoryTape">

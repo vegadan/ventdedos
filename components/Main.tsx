@@ -11,6 +11,7 @@ import HudCard from "@/components/HudCard";
 import JourneyMap from "@/components/JourneyMap";
 import MapNavigation from "@/components/MapNavigation";
 import PhotoOverlay from "@/components/PhotoOverlay";
+import GuestStoryNote from "@/components/GuestStoryNote";
 
 import {
   addPathDistance,
@@ -176,7 +177,16 @@ export default function Main() {
             onHoverArticle={setHoveredArticleIndex}
           />
 
-          <ArticleStory activeArticle={activeArticle} />
+          <div className="articleArea">
+            <ArticleStory activeArticle={activeArticle} />
+
+            {activeArticle.guestStory && (
+              <GuestStoryNote
+                key={activeArticle.id}
+                story={activeArticle.guestStory}
+              />
+            )}
+          </div>
 
           <HudCard day={day} km={km} displayedStop={displayedStop} />
 
