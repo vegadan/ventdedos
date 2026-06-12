@@ -82,13 +82,13 @@ export default function Main() {
   const activeStop = points[current.activeIndex];
   const nextStop = points[Math.min(current.activeIndex + 1, points.length - 1)];
 
-  const segmentKm = nextStop.km_total - activeStop.km_total;
-  const targetKm = progress * points[points.length - 1].km_total;
+  const segmentDistance = nextStop.pathDistance - activeStop.pathDistance;
+  const targetDistance = progress * points[points.length - 1].pathDistance;
 
   const localProgress =
-    segmentKm === 0 ? 0 : (targetKm - activeStop.km_total) / segmentKm;
-
-  const km =
+    segmentDistance === 0 ? 0 : (targetDistance - activeStop.pathDistance) / segmentDistance;
+  
+    const km =
     activeStop.km_total +
     (nextStop.km_total - activeStop.km_total) * localProgress;
 

@@ -48,28 +48,26 @@ export function interpolateByPathDistance(
   progress: number
 ) {
   const totalDistance = points[points.length - 1].pathDistance;
-  const targetDistance = progress * totalDistance;
+  const safeProgress = Math.max(0, Math.min(1, progress));
+  const targetDistance = safeProgress * totalDistance;
+  const epsilon = totalDistance * 0.000001;
 
   const index = points.findIndex((p) => p.pathDistance >= targetDistance);
 
   if (index <= 0) {
-    return {
-      point: points[0],
-      activeIndex: 0,
-      x: points[0].x,
-      y: points[0].y,
-    };
+    return { point: points[0], activeIndex: 0, x: points[0].x, y: points[0].y };
   }
 
   const a = points[index - 1];
   const b = points[index];
 
-  const segmentDistance = b.pathDistance - a.pathDistance;
+  if (Math.abs(targetDistance - b.pathDistance) <= epsilon) {
+    return { point: b, activeIndex: index, x: b.x, y: b.y };
+  }
 
+  const segmentDistance = b.pathDistance - a.pathDistance;
   const t =
-    segmentDistance === 0
-      ? 0
-      : (targetDistance - a.pathDistance) / segmentDistance;
+    segmentDistance === 0 ? 0 : (targetDistance - a.pathDistance) / segmentDistance;
 
   return {
     point: a,
