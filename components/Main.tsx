@@ -28,6 +28,7 @@ export default function Main() {
 
   const [progress, setProgress] = useState(0);
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
+  const [hoveredArticleIndex, setHoveredArticleIndex] = useState<number | null>(null);
   const [activePhotos, setActivePhotos] = useState<string[]>([]);
   const [view, setView] = useState<MapView>({
     x: 0,
@@ -170,7 +171,9 @@ export default function Main() {
           <ChapterRibbon
             articleList={articleList}
             currentArticleIndex={currentArticleIndex}
+            hoveredArticleIndex={hoveredArticleIndex}
             onSelectArticle={goToArticle}
+            onHoverArticle={setHoveredArticleIndex}
           />
 
           <ArticleStory activeArticle={activeArticle} />

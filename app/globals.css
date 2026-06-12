@@ -502,6 +502,15 @@ path {
   }
 }
 
+.navLogo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  transform: scale(1.3);
+  transform-origin: center;
+  pointer-events: none;
+}
+
 .mapNavigation {
   position: absolute;
   left: 50%;

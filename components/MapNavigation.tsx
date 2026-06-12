@@ -9,9 +9,9 @@ export default function MapNavigation({
 }: MapNavigationProps) {
   return (
     <div className="mapNavigation">
-      <button onClick={onPrevious}>← précédent</button>
-      <span>✦</span>
-      <button onClick={onNext}>suivant →</button>
+      <button className="navButton" onClick={onPrevious}>Précédent</button>
+      <img className="navLogo" src="/icons/logo.png" alt="Logo Vent de Dos"/>
+      <button className="navButton" onClick={onNext}>Suivant</button>
     </div>
   );
 }
