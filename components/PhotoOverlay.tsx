@@ -58,8 +58,8 @@ export default function PhotoOverlay({
               key={`${activeArticle.id}-${src}`}
               style={
                 {
-                  right: `${right}%`,
-                  top: `${top}%`,
+                  "--photo-right": `${right}%`,
+                  "--photo-top": `${top}%`,
                   "--photo-rotation": `${rotation}deg`,
                   "--photo-delay": `${index * 0.5}s`,
                 } as React.CSSProperties

@@ -47,7 +47,7 @@ export default function ArticleStory({ activeArticle, isMapOnly}: ArticleStoryPr
     return (
     <div className="articleArea">
       <div className="articleStoryTape articleStoryIntro">
-        <img src="/images/logo.png" alt="Vent de Dos" className="articleIntroLogo"/>
+        <img src="/images/logo.webp" alt="Vent de Dos" className="articleIntroLogo"/>
         <div className="articleStoryText articleIntroText">
            <p>
             C&apos;est l&apos;histoire d&apos;un couple parti à la découverte de l&apos;Europe à l&apos;aide

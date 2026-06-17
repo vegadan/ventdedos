@@ -31,7 +31,6 @@ export default function Main() {
   const [progress, setProgress] = useState(0);
   const [isLoopingSegment, setIsLoopingSegment] = useState(false);
   const [isMapOnly, setIsMapOnly] = useState(true);
-  const [isMapIntroDone, setIsMapIntroDone] = useState(false);
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
   const [selectedStopId, setSelectedStopId] = useState<number | null>(null);
   const [hoveredArticleIndex, setHoveredArticleIndex] = useState<number | null>(null);
@@ -47,7 +46,7 @@ export default function Main() {
 
   const hasPlayedIntroRef = useRef(false);
   const progressRef = useRef(0);
-  const travelTweenRef = useRef<gsap.core.Tween | null>(null);
+  const travelTweenRef = useRef<gsap.core.Animation | null>(null);
 
   const viewRef = useRef<MapView>({
     x: 0,
@@ -191,7 +190,6 @@ export default function Main() {
   }
 
   function playFullMap() {
-    setIsMapIntroDone(false);
     travelTweenRef.current?.kill();
 
     const startView = getSegmentTransform(
@@ -200,7 +198,7 @@ export default function Main() {
       articleList[0].endStopId
     );
 
-    const endView = getSegmentTransform(
+    const fullView = getSegmentTransform(
       points,
       articleList[0].startStopId,
       articleList[articleList.length - 1].endStopId
@@ -212,17 +210,8 @@ export default function Main() {
     setHoveredStopId(null);
     setProgress(0);
 
-    viewRef.current = {
-      x: startView.x,
-      y: startView.y,
-      zoom: startView.zoom,
-    };
-
-    setView({
-      x: startView.x,
-      y: startView.y,
-      zoom: startView.zoom,
-    });
+    viewRef.current = startView;
+    setView(startView);
 
     const animated = {
       progress: 0,
@@ -231,32 +220,46 @@ export default function Main() {
       zoom: startView.zoom,
     };
 
-    travelTweenRef.current = gsap.to(animated, {
-      progress: 1,
-      x: endView.x,
-      y: endView.y,
-      zoom: endView.zoom,
-      duration: 3,
-      ease: "power1.out",
-      onUpdate: () => {
-        setProgress(animated.progress);
-
-        viewRef.current.x = animated.x;
-        viewRef.current.y = animated.y;
-        viewRef.current.zoom = animated.zoom;
-
-        setView({
-          x: animated.x,
-          y: animated.y,
-          zoom: animated.zoom,
-        });
-      },
+    const tl = gsap.timeline({
       onComplete: () => {
         setProgress(1);
-        setIsMapIntroDone(true);
       },
-    });
-  }
+  });
+
+  // 1. Zoom out
+  tl.to(animated, {
+    x: fullView.x,
+    y: fullView.y,
+    zoom: fullView.zoom,
+    duration: 1,
+    ease: "power2.inOut",
+    onUpdate: () => {
+      viewRef.current = {
+        x: animated.x,
+        y: animated.y,
+        zoom: animated.zoom,
+      };
+
+      setView({
+        x: animated.x,
+        y: animated.y,
+        zoom: animated.zoom,
+      });
+    },
+  });
+
+  // 2. Déplacement du vélo
+  tl.to(animated, {
+    progress: 1,
+    duration: 2,
+    ease: "none",
+    onUpdate: () => {
+      setProgress(animated.progress);
+    },
+  });
+
+  travelTweenRef.current = tl;
+}
 
   useEffect(() => {
     if (!isMapOnly || hasPlayedIntroRef.current) return;
@@ -339,7 +342,6 @@ export default function Main() {
               onNext={() => goToArticle(currentArticleIndex + 1)}
               onToggle={toggleMapMode}
               isMapOnly={isMapOnly}
-              isMapIntroDone={isMapIntroDone}
           />
         </div>
       </section>
