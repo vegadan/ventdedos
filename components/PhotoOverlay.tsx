@@ -82,6 +82,8 @@ export default function PhotoOverlay({
                 src={src}
                 alt=""
                 className="tapedPhoto"
+                loading="lazy"
+                decoding="async"
               />
             </button>
           );

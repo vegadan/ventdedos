@@ -69,7 +69,7 @@ export default function Main() {
 
   const activePhotos = useMemo(() => {
     return Array.from({ length: 10 }, (_, index) => {
-      return `/articles/${activeArticle.id}/${index + 1}.jpg`;
+      return `/articles-webp/${activeArticle.id}/${index + 1}.webp`;
     });
   }, [activeArticle.id]);
 
