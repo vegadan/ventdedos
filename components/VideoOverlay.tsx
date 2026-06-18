@@ -26,7 +26,7 @@ export default function VideoOverlay({
 
   return (
     <>
-      <div className="globalVideoButtons">
+      <div className="mapAnchor">
         <div className="globalVideoButtonsContent">
           {videoList.map((video) => (
             <button

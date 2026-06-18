@@ -16,9 +16,9 @@ body {
   overflow: hidden;
 }
 
-.chapterRibbon {
+.chapterRibbonAnchor {
   position: absolute;
-  top: 40px;
+  top: 2%;
   left: 50%;
   transform: translateX(-50%);
   max-width: calc(100vw - 80px);
@@ -26,15 +26,16 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 650px;
+  min-width: 630px;
   padding: 0.4rem 1rem;
   background: rgba(255, 250, 240, 0.94);
   border-radius: 18px;
   box-shadow: 0 4px 14px rgba(70, 45, 20, 0.12);
+  pointer-events: auto;
 }
 
-.chapterRibbon::before,
-.chapterRibbon::after {
+.chapterRibbonAnchor::before,
+.chapterRibbonAnchor::after {
   content: "";
   position: absolute;
   width: 80px;
@@ -46,16 +47,15 @@ body {
   pointer-events: none;
 }
 
-.chapterRibbon::before {
+.chapterRibbonAnchor::before {
   left: 22%;
   transform: rotate(-4deg);
 }
 
-.chapterRibbon::after {
+.chapterRibbonAnchor::after {
   right: 22%;
   transform: rotate(3deg);
 }
-
 
 .activeChapterTitle {
   font-family: var(--font-caveat);
@@ -114,9 +114,8 @@ body {
 }
 
 .mapSvg {
-  width: min(92vw, 1200px);
+  width: min(98vw, 1200px);
   height: auto;
-  max-height: 88vh;
   filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.18));
 }
 
@@ -189,118 +188,23 @@ body {
   vector-effect: non-scaling-stroke;
 }
 
-.articleStoryTape {
-  position: relative;
-  left: auto;
-  top: auto;
-  transform: none;
-  z-index: 20;
-  padding: 1.2rem;
-  padding-right: 0.0rem;
-  background: #ebdcbb;
-  border-radius: 6px;
-  box-shadow: 0 10px 24px rgba(60, 35, 20, 0.18);
-  box-sizing: border-box;
-  width: 400px;
-  color: #4f4234;
-  height: 600px;
-  max-height: 600px;
-  overflow: visible;
-  padding-bottom: 2rem;
-  background:
-    linear-gradient(
-      rgba(255,255,255,0.04),
-      rgba(255,255,255,0.04)
-    ),
-    #f2e6c9;
-}
-
-.articleStoryTape::before,
-.articleStoryTape::after {
-  content: "";
+.mapAnchor {
   position: absolute;
-  width: 72px;
-  height: 24px;
-  background: rgba(230, 214, 170, 0.72);
-  box-shadow: 0 2px 5px rgba(70, 45, 20, 0.12);
-  z-index: 2;
+  width: min(96vw, 1600px);
+  aspect-ratio: 1600 / 900;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
 }
 
-.articleStoryTape::before {
-  top: -11px;
-  left: 28px;
-  transform: rotate(-7deg);
-}
-
-.articleStoryTape::after {
-  bottom: -10px;
-  right: 30px;
-  transform: rotate(6deg);
-}
-
-.articleStoryText {
-  height: calc(100% - 0.2rem);
-  max-height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 1.2rem;
-  padding-bottom: 1rem;
-  box-sizing: border-box;
-  font-family: "Special Elite", serif;
-  font-size: 1.0rem;
-  line-height: 1.35;
-  font-weight: 300;
-}
-
-.articleStoryText p {
-  margin: 0;
-  white-space: pre-line;
-  text-align: justify;
-  text-justify: inter-word;
-  hyphens: auto;
-}
-
-.articleStoryText::-webkit-scrollbar {
-  width: 6px;
-}
-
-.articleStoryText::-webkit-scrollbar-thumb {
-  background: rgba(120, 90, 60, 0.25);
-  border-radius: 999px;
-}
-
-.articleStoryIntro {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: justify;
-}
-
-.articleIntroLogo {
-  width: 220px;
-  height: auto;
-  margin-bottom: 1.5rem;
-  object-fit: contain;
-}
-
-.articleIntroText {
-  height: auto;
-  overflow: visible;
-  padding-right: 1.2rem;
-  font-family: "Special Elite", serif;
-  font-size: 1rem;
-  line-height: 1.45;
-  color: #4f4234;
-}
-
-.articleIntroText p {
-  margin: 0 0 1.25rem 0;
-  text-align: justify;
-  white-space: normal;
-}
-
-.articleIntroText p:last-child {
-  margin-bottom: 0;
+.hudAnchor {
+  position: absolute;
+  left: 2%;
+  bottom: 2%;
+  pointer-events: none;
+  z-index: 30;
 }
 
 .hud {
@@ -354,23 +258,6 @@ body {
   text-align: center;
 }
 
-.hudOverlay {
-  position: absolute;
-  width: min(96vw, 1400px);
-  aspect-ratio: 1200 / 800;
-  left: 50%;
-  top: 45%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 30;
-}
-
-.hudAnchor {
-  position: absolute;
-  left: 2%;
-  top: 88%;
-}
-
 .baseMapImage {
   opacity: 0.85;
   pointer-events: none;
@@ -421,17 +308,11 @@ path {
   box-shadow: 0 2px 5px rgba(70, 45, 20, 0.12);
 }
 
-.photoOverlay {
+.photoOverlayAnchor {
   position: absolute;
-  width: min(96vw, 1400px);
-  aspect-ratio: 1200 / 800;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 4;
+  inset: 0;
   pointer-events: none;
   overflow: visible;
-  border-radius: 32px;
 }
 
 .tapedPhoto {
@@ -453,7 +334,7 @@ path {
   padding: 0;
   background: transparent;
   cursor: pointer;
-  z-index: 8;
+  z-index: 41;
   pointer-events: auto;
 
   animation: photoDropIn 0.55s cubic-bezier(0.2, 0.9, 0.25, 1.15) backwards;
@@ -544,24 +425,95 @@ path {
   }
 }
 
-.articleArea {
+.articleStoryTape {
   position: absolute;
+  left: 2%;
+  bottom: 22%;
+  z-index: 20;
+  padding: 1.2rem;
+  padding-right: 0.0rem;
+  background: #ebdcbb;
+  border-radius: 6px;
+  box-shadow: 0 10px 24px rgba(60, 35, 20, 0.18);
+  box-sizing: border-box;
+  width: 400px;
+  color: #4f4234;
+  height: 600px;
+  max-height: 600px;
+  overflow: visible;
+  padding-bottom: 2rem;
+  pointer-events: auto;
+  background:
+    linear-gradient(
+      rgba(255,255,255,0.04),
+      rgba(255,255,255,0.04)
+    ),
+    #f2e6c9;
+}
 
-  width: min(96vw, 1400px);
-  aspect-ratio: 1200 / 800;
+.articleStoryTape::before,
+.articleStoryTape::after {
+  content: "";
+  position: absolute;
+  width: 72px;
+  height: 24px;
+  background: rgba(230, 214, 170, 0.72);
+  box-shadow: 0 2px 5px rgba(70, 45, 20, 0.12);
+  z-index: 2;
+}
 
-  left: 50%;
-  top: 52%;
-  transform: translate(-50%, -50%);
+.articleStoryTape::before {
+  top: -11px;
+  left: 28px;
+  transform: rotate(-7deg);
+}
 
-  z-index: 18;
+.articleStoryTape::after {
+  bottom: -10px;
+  right: 30px;
+  transform: rotate(6deg);
+}
 
-  pointer-events: none;
+.articleStoryText {
+  height: calc(100% - 0.2rem);
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 1.2rem;
+  padding-bottom: 1rem;
+  box-sizing: border-box;
+  pointer-events: auto;
+  font-family: "Special Elite", serif;
+  font-size: 1.0rem;
+  line-height: 1.35;
+  font-weight: 300;
+}
 
-  /* position de l'article */
-  padding-left: 2%;
-  padding-top: 12%;
-} 
+.articleStoryText p {
+  margin: 0;
+  white-space: pre-line;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+}
+
+.articleStoryText::-webkit-scrollbar {
+  width: 6px;
+}
+
+.articleStoryText::-webkit-scrollbar-thumb {
+  background: rgba(120, 90, 60, 0.25);
+  border-radius: 999px;
+}
+
+.articleIntroLogo {
+  display: block;
+  margin: 0 auto 1.5rem;
+  width: 220px;
+  height: auto;
+  margin-bottom: 1.5rem;
+  object-fit: contain;
+}
 
 .guestStoryNote {
   position: absolute;
@@ -640,11 +592,13 @@ path {
   border-radius: 999px;
 }
 
-.mapNavigation {
+
+.mapNavigationAnchor {
   position: absolute;
+  bottom: 2%;
   left: 50%;
-  bottom: 50px;
   transform: translateX(-50%);
+  pointer-events: auto; /* <- les boutons restent cliquables */
   display: flex;
   align-items: center;
   gap: 2rem;
@@ -652,10 +606,9 @@ path {
   background: rgba(255, 250, 240, 0.95);
   border-radius: 22px;
   box-shadow: 0 10px 24px rgba(60, 35, 20, 0.12);
-  z-index: 20;
 }
 
-.mapNavigation button {
+.mapNavigationAnchor button {
   border: none;
   background: transparent;
   font-family: var(--font-caveat);
@@ -669,7 +622,7 @@ path {
   opacity: 0.9;
 }
 
-.mapNavigation::before {
+.mapNavigationAnchor::before {
   content: "";
   position: absolute;
   top: -10px;
@@ -681,12 +634,12 @@ path {
   border-radius: 2px;
 }
 
-.mapNavigation button:hover {
+.mapNavigationAnchor button:hover {
   transform: scale(1.15);
   opacity: 1;
 }
 
-.mapNavigation span {
+.mapNavigationAnchor span {
   font-family: var(--font-caveat);
   font-size: 2rem;
   color: rgba(200, 93, 50, 0.45);
@@ -730,31 +683,15 @@ path {
   pointer-events: none;
 }
 
-.globalVideoButtons {
-  position: absolute;
-
-  width: min(96vw, 1400px);
-  aspect-ratio: 1200 / 800;
-
-  left: 49%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-
-  z-index: 22;
-  pointer-events: none;
-
-  padding-left: 2%;
-  padding-top: 2%;
-  box-sizing: border-box;
-}
 
 .globalVideoButtonsContent {
   width: 400px;
-
+   position: absolute;
+  left: 2%;
+  top: 2%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   pointer-events: auto;
 }
 
@@ -904,7 +841,8 @@ body {
   overflow-x: hidden;
 }
 
-@media (max-width: 1000px) or (max-height: 900px) {
+@media (max-width: 1000px) or (max-height: 800px) {
+
   .journey {
     height: auto;
     min-height: 100dvh;
@@ -933,13 +871,24 @@ body {
 
   /* reset desktop */
 
-  .chapterRibbon,
-  .articleArea,
-  .hudOverlay,
-  .hud,
-  .globalVideoButtons,
-  .photoOverlay,
-  .mapNavigation {
+  .mapAnchor {
+    position: relative;
+    order: 3;
+    display: contents;
+    width: 100%;
+    aspect-ratio: auto;
+    left: auto;
+    top: auto;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .chapterRibbonAnchor,
+  .hudAnchor,
+  .articleStoryTape,
+  .photoOverlayAnchor,
+  .globalVideoButtonsContent,
+  .mapNavigationAnchor {
     position: relative;
     left: auto;
     right: auto;
@@ -948,18 +897,17 @@ body {
     transform: none;
     width: 100%;
     max-width: none;
-    min-width: 0;
   }
 
   /* ordre */
 
-  .chapterRibbon { order: 1; }
-  .mapSvg        { order: 2; }
-  .hudOverlay    { order: 3; }
-  .articleArea   { order: 4; }
-  .photoOverlay  { order: 5; }
-  .globalVideoButtons { order: 6; }
-  .mapNavigation { order: 7; }
+  .chapterRibbonAnchor        { order: 1; }
+  .mapSvg                     { order: 2; }
+  .hudAnchor                  { order: 3; }
+  .articleStoryTape           { order: 4; }
+  .photoOverlayAnchor         { order: 5; }
+  .globalVideoButtonsContent  { order: 6; }
+  .mapNavigationAnchor        { order: 7; }
 
   /* carte */
 
@@ -972,12 +920,13 @@ body {
 
   /* ruban */
 
-  .chapterRibbon {
+  .chapterRibbonAnchor {
     padding: 0.5rem;
+    min-width: 0;
   }
 
-  .chapterRibbon::before,
-  .chapterRibbon::after {
+  .chapterRibbonAnchor::before,
+  .chapterRibbonAnchor::after {
     display: none;
   }
 
@@ -992,7 +941,9 @@ body {
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.25rem 0.35rem;
-    overflow: visible;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
 
   .chapterNumbers button {
@@ -1028,6 +979,11 @@ body {
 
   /* hud */
 
+  .hudAnchor {
+    width: 100%;
+    padding: 0;
+  }
+
   .hud {
     width: 100%;
     padding: 1rem;
@@ -1041,15 +997,9 @@ body {
     font-size: 1.2rem;
   }
 
-  .hudAnchor {
-    position: relative;
-    left: auto;
-    top: auto;
-  }
-
   /* vidéos */
 
-  .globalVideoButtons {
+  .globalVideoButtonsContent {
     display: flex;
     gap: 0.5rem;
   }
@@ -1070,7 +1020,7 @@ body {
 
   /* photos */
 
-  .photoOverlay {
+  .photoOverlayAnchor {
     position: relative;
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1098,13 +1048,13 @@ body {
 
   /* navigation normale */
 
-  .mapNavigation {
+  .mapNavigationAnchor {
     justify-content: center;
     gap: 0.75rem;
     padding: 0.7rem 1rem;
   }
 
-  .mapNavigation button {
+  .mapNavigationAnchor button {
     font-size: 1.4rem;
   }
 }

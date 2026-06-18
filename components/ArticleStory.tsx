@@ -45,24 +45,13 @@ export default function ArticleStory({ activeArticle, isMapOnly}: ArticleStoryPr
   if (isMapOnly) 
   {
     return (
-    <div className="articleArea">
-      <div className="articleStoryTape articleStoryIntro">
+    <div className="mapAnchor">
+      <div className="articleStoryTape">
         <img src="/images/logo.webp" alt="Vent de Dos" className="articleIntroLogo"/>
-        <div className="articleStoryText articleIntroText">
+        <div className="articleStoryText">
            <p>
-            C&apos;est l&apos;histoire d&apos;un couple parti à la découverte de l&apos;Europe à l&apos;aide
-            d&apos;un moyen de locomotion simple, écologique et ouvert sur le monde.
-          </p>
-
-          <p>
-            Jour après jour, kilomètre après kilomètre, le vélo devient bien plus
-            qu&apos;un moyen de transport : une invitation à la rencontre, à l&apos;aventure
-            et à la découverte.
-          </p>
-
-          <p>
-            Une aventure portée par un sentiment de liberté infini.
-        </p>
+              {`C'est l'histoire d'un couple parti à la découverte de l'Europe à l'aide d'un moyen de locomotion simple, écologique et ouvert sur le monde.\n\nJour après jour, kilomètre après kilomètre, le vélo devient bien plus qu'un moyen de transport : une invitation à la rencontre, à l'aventure et à la découverte.\n\nUne aventure portée par un sentiment de liberté infini.`}
+            </p>
         </div>
       </div>
     </div>
@@ -71,7 +60,7 @@ export default function ArticleStory({ activeArticle, isMapOnly}: ArticleStoryPr
   else
   {
     return (
-      <div className="articleArea">
+      <div className="mapAnchor">
         <div className="articleStoryTape">
           <div className="articleStoryText">
             <p>

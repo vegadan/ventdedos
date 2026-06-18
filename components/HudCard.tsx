@@ -22,7 +22,7 @@ export default function HudCard({ day, km, displayedStop, isMapOnly }: HudCardPr
   if(isMapOnly) 
   {
     return (
-      <div className="hudOverlay">
+      <div className="mapAnchor">
         <div className="hudAnchor">
           <div className="hud">
             <div className="hudSmall">{Math.round(day)} jours</div>
@@ -40,7 +40,7 @@ export default function HudCard({ day, km, displayedStop, isMapOnly }: HudCardPr
     const departureDate = formatFrenchDate(displayedStop.departure_date);
     
     return (
-        <div className="hudOverlay">
+        <div className="mapAnchor">
           <div className="hudAnchor">
             <div className="hud">
               <div className="hudSmall">Jour {Math.round(day)} - Le {departureDate}</div>
