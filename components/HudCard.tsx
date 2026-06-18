@@ -22,14 +22,16 @@ export default function HudCard({ day, km, displayedStop, isMapOnly }: HudCardPr
   if(isMapOnly) 
   {
     return (
-      <div className="hud">
-        <div className="hudSmall">{Math.round(day)} jours</div>
-
-        <div className="hudBig">
-          {Math.round(km).toLocaleString("fr-CH")} km
+      <div className="hudOverlay">
+        <div className="hudAnchor">
+          <div className="hud">
+            <div className="hudSmall">{Math.round(day)} jours</div>
+            <div className="hudBig">
+              {Math.round(km).toLocaleString("fr-CH")} km
+            </div>
+            <div className="hudPlace">30 pays</div>
+          </div>
         </div>
-
-        <div className="hudPlace">30 pays</div>
       </div>
     );
   }
@@ -38,15 +40,17 @@ export default function HudCard({ day, km, displayedStop, isMapOnly }: HudCardPr
     const departureDate = formatFrenchDate(displayedStop.departure_date);
     
     return (
-      <div className="hud">
-        <div className="hudSmall">Jour {Math.round(day)} - Le {departureDate}</div>
-
-        <div className="hudBig">
-          {Math.round(km).toLocaleString("fr-CH")} km
-        </div>
-
-        <div className="hudPlace">
-          {displayedStop.city}, {displayedStop.country_name}
+        <div className="hudOverlay">
+          <div className="hudAnchor">
+            <div className="hud">
+              <div className="hudSmall">Jour {Math.round(day)} - Le {departureDate}</div>
+              <div className="hudBig">
+                {Math.round(km).toLocaleString("fr-CH")} km
+              </div>
+              <div className="hudPlace">
+                {displayedStop.city}, {displayedStop.country_name}
+              </div>
+            </div>
         </div>
       </div>
     );

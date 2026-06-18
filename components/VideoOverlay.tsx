@@ -27,19 +27,21 @@ export default function VideoOverlay({
   return (
     <>
       <div className="globalVideoButtons">
-        {videoList.map((video) => (
-          <button
-            key={video.id}
-            type="button"
-            className="globalVideoButton"
-            onClick={() => setActiveVideo(video)}
-            title={video.title}
-            aria-label={video.title}
-          >
-            <span className="videoPlayIcon">▶</span>
-            <span className="videoTitle">{video.title}</span>
-          </button>
-        ))}
+        <div className="globalVideoButtonsContent">
+          {videoList.map((video) => (
+            <button
+              key={video.id}
+              type="button"
+              className="globalVideoButton"
+              onClick={() => setActiveVideo(video)}
+              title={video.title}
+              aria-label={video.title}
+            >
+              <span className="videoPlayIcon">▶</span>
+              <span className="videoTitle">{video.title}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {activeVideo && (
